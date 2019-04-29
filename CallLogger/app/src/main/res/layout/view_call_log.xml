@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="horizontal"
+              android:layout_width="match_parent"
+              android:layout_height="70dp"
+              android:paddingTop="8dp"
+              android:paddingStart="16dp"
+              android:paddingEnd="16dp"
+              android:paddingBottom="8dp"
+              android:background="@drawable/custom_ripple" >
+
+    <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="7"
+            android:orientation="vertical"
+            android:gravity="center_vertical">
+        <TextView
+                android:id="@+id/numberTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="425-647-1187" />
+
+        <TextView
+                android:id="@+id/dateTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="4:00 PM 12/31/69"
+                android:textColor="#A9A9A9"/>
+    </LinearLayout>
+
+    <TextView
+            android:id="@+id/typeTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:layout_gravity="center_vertical"
+            android:text="Incoming" />
+
+</LinearLayout>
