@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">CallLogger</string>
+    <string name="call_logger_activity_title">Call Log</string>
 </resources>

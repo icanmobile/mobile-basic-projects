@@ -6,6 +6,8 @@
     <dist:module dist:instant="true"/>
 
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS"/>
 
     <application
             android:name=".CallLoggerApp"
@@ -15,13 +17,15 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <activity android:name=".ui.calllogger.CallLoggerActivity">
+
+        <activity android:name=".ui.calllogger.CallLoggerActivity"
+                  android:label="@string/call_logger_activity_title">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>

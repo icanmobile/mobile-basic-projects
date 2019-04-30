@@ -1,5 +1,8 @@
 package com.icanmobile.calllogger.ui.calllogger
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
@@ -10,9 +13,14 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.icanmobile.calllogger.R
 import com.icanmobile.calllogger.data.calllog.CallLog
+import com.icanmobile.calllogger.util.Constants.Companion.LIMIT
+import com.icanmobile.calllogger.util.Constants.Companion.PERMISSIONS
 import dagger.android.support.DaggerAppCompatActivity
 import kotlinx.android.synthetic.main.activity_call_logger.*
+import java.util.HashMap
 import javax.inject.Inject
+
+
 
 
 /**
@@ -30,7 +38,6 @@ class CallLoggerActivity : DaggerAppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_call_logger)
 
-
         callLoggerActivityViewModel = ViewModelProviders.of(this, callLoggerActivityViewModelFactory)
             .get(CallLoggerActivityViewModel::class.java)
 
@@ -41,7 +48,12 @@ class CallLoggerActivity : DaggerAppCompatActivity() {
 
         initUI()
 
-        loadCallLogs()
+        if (!hasPermissions(this, *PERMISSIONS)) {
+            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL)
+        }
+        else {
+            loadCallLogs()
+        }
     }
 
 
@@ -74,7 +86,56 @@ class CallLoggerActivity : DaggerAppCompatActivity() {
      * load call histories from CallLoggerActivityViewModel class
      */
     fun loadCallLogs() {
-        callLoggerActivityViewModel.loadCallLogs(contentResolver, 50)
+        callLoggerActivityViewModel.loadCallLogs(contentResolver, LIMIT)
+    }
+    //endregion
+
+
+
+    //region permissions
+    private val PERMISSION_ALL = 101
+    /**
+     * check the permissions.
+     * @param context the context
+     * @param permissions the permissions
+     * @return true/false whether application has permissions or not
+     */
+    fun hasPermissions(context: Context?, vararg permissions: String): Boolean {
+        if (context != null) {
+            permissions.forEach {
+                if (ActivityCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            PERMISSION_ALL -> {
+                // Using HashMap to save each permission condition.
+                val perms = HashMap<String, Int>()
+                perms.put(Manifest.permission.READ_CALL_LOG, PackageManager.PERMISSION_GRANTED)
+                perms.put(Manifest.permission.READ_PHONE_STATE, PackageManager.PERMISSION_GRANTED)
+                perms.put(Manifest.permission.PROCESS_OUTGOING_CALLS, PackageManager.PERMISSION_GRANTED)
+
+                if (grantResults.size > 0) {
+                    for (i in permissions.indices)
+                        perms.put(permissions[i], grantResults[i])
+
+                    if (perms.get(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED &&
+                        perms.get(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED &&
+                        perms.get(Manifest.permission.PROCESS_OUTGOING_CALLS) == PackageManager.PERMISSION_GRANTED) {
+
+                        // load call histories
+                        loadCallLogs()
+                    } else {
+                        // finish this activity
+                        finish()
+                    }
+                }
+            }
+        }
     }
     //endregion
 }
