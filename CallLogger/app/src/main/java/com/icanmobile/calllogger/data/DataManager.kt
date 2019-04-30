@@ -24,8 +24,19 @@ class DataManager @Inject constructor(private val callLogManager: CallLogManager
      * @param limit the max number of call histories
      */
     fun loadCallLogs(@NonNull contentResolver: ContentResolver, limit: Int) {
-        callLogManager.loadCallLogs(contentResolver, limit) { callLogs ->
-            this.callLogs.accept(callLogs)
+        callLogManager.loadCallLogs(contentResolver, limit) { logs ->
+            callLogs.accept(logs)
+        }
+    }
+
+
+    /**
+     * update call histories from CallLogManager class and transfer the histories using reactive extensions.
+     * @param contentResolver the content resolver
+     */
+    fun updateCallLogs(contentResolver: ContentResolver) {
+        callLogManager.updateCallLogs(contentResolver) { logs ->
+            callLogs.accept(logs)
         }
     }
 }

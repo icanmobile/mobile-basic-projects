@@ -2,6 +2,7 @@ package com.icanmobile.calllogger.ui.calllogger
 
 import android.Manifest
 import android.content.Context
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -13,11 +14,12 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.icanmobile.calllogger.R
 import com.icanmobile.calllogger.data.calllog.CallLog
+import com.icanmobile.calllogger.receiver.PhoneCallReceiver
 import com.icanmobile.calllogger.util.Constants.Companion.LIMIT
 import com.icanmobile.calllogger.util.Constants.Companion.PERMISSIONS
 import dagger.android.support.DaggerAppCompatActivity
 import kotlinx.android.synthetic.main.activity_call_logger.*
-import java.util.HashMap
+import java.util.*
 import javax.inject.Inject
 
 
@@ -48,6 +50,12 @@ class CallLoggerActivity : DaggerAppCompatActivity() {
 
         initUI()
 
+
+        // call receiver to check the updated call logs
+        callReceiver = CallReceiver(this)
+        callReceiver.register()
+
+
         if (!hasPermissions(this, *PERMISSIONS)) {
             ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL)
         }
@@ -55,6 +63,20 @@ class CallLoggerActivity : DaggerAppCompatActivity() {
             loadCallLogs()
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+
+        if(callReceiver.isUpdatedCallLogs())
+            updateCallLogs()
+    }
+
+    override fun onDestroy() {
+        callReceiver.unregister()
+
+        super.onDestroy()
+    }
+
 
 
 
@@ -87,6 +109,65 @@ class CallLoggerActivity : DaggerAppCompatActivity() {
      */
     fun loadCallLogs() {
         callLoggerActivityViewModel.loadCallLogs(contentResolver, LIMIT)
+    }
+
+    /**
+     * update call histories from CallLoggerActivityViewModel class
+     */
+    fun updateCallLogs() {
+        callLoggerActivityViewModel.updateCallLogs(contentResolver)
+    }
+    //endregion
+
+
+
+
+    //region Call Receiver extended from PhoneCallReceiver
+    private lateinit var callReceiver: CallReceiver
+    private class CallReceiver(private val context: Context): PhoneCallReceiver() {
+        private lateinit var intentFilter: IntentFilter
+        private var registered = false
+
+        fun register() {
+            if (!registered) {
+                intentFilter = IntentFilter()
+                intentFilter.addAction("android.intent.action.PHONE_STATE")
+                intentFilter.addAction("android.intent.action.NEW_OUTGOING_CALL")
+                context.registerReceiver(this, intentFilter)
+                registered = true
+            }
+        }
+
+        fun unregister() {
+            if (registered) {
+                context.unregisterReceiver(this)
+                registered = false
+            }
+        }
+
+        private var isUpdated = false
+        fun isUpdatedCallLogs(): Boolean {
+            var result = isUpdated
+            isUpdated = false
+            return result
+        }
+        override fun onIncomingCallStarted(ctx: Context, number: String, start: Date) {
+        }
+
+        override fun onOutgoingCallStarted(ctx: Context, number: String, start: Date) {
+        }
+
+        override fun onIncomingCallEnded(ctx: Context, number: String, start: Date, end: Date) {
+            isUpdated = true
+        }
+
+        override fun onOutgoingCallEnded(ctx: Context, number: String, start: Date, end: Date) {
+            isUpdated = true
+        }
+
+        override fun onMissedCall(ctx: Context, number: String, start: Date) {
+            isUpdated = true
+        }
     }
     //endregion
 
