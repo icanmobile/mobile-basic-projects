@@ -5,6 +5,8 @@
 
     <dist:module dist:instant="true"/>
 
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+
     <application
             android:name=".CallLoggerApp"
             android:allowBackup="true"
