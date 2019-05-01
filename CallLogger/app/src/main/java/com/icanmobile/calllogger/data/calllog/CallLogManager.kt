@@ -22,7 +22,6 @@ class CallLogManager {
     private var latestDate: String? = null
 
     companion object {
-        private const val CALL_URI = "content://call_log/calls"
         private const val ORDER = " DESC"
     }
 
@@ -36,8 +35,7 @@ class CallLogManager {
     fun loadCallLogs(@NonNull contentResolver: ContentResolver, limit: Int, @NonNull finished: listener) {
         CoroutineScope(Dispatchers.Main).launch {
             val strOrder = android.provider.CallLog.Calls.DATE + ORDER
-            val callUri = Uri.parse(CALL_URI)
-            val cursor = contentResolver.query(callUri, null, null, null, strOrder)
+            val cursor = contentResolver.query(android.provider.CallLog.Calls.CONTENT_URI, null, null, null, strOrder)
 
             var callLogs = arrayListOf<CallLog>()
             if (cursor != null) {
@@ -51,6 +49,7 @@ class CallLogManager {
                     // save the date of latest call log for updating call logs
                     if (callLogs.size == 1) latestDate = date
                 }
+                cursor.close()
 
                 finished(callLogs)
             }
@@ -72,10 +71,9 @@ class CallLogManager {
 
         CoroutineScope(Dispatchers.Main).launch {
             val strOrder = android.provider.CallLog.Calls.DATE + ORDER
-            val callUri = Uri.parse(CALL_URI)
             val selection = android.provider.CallLog.Calls.DATE + " > ?"
             val selectionArgs = arrayOf(latestDate)
-            val cursor = contentResolver.query(callUri, null, selection, selectionArgs, strOrder)
+            val cursor = contentResolver.query(android.provider.CallLog.Calls.CONTENT_URI, null, selection, selectionArgs, strOrder)
 
             var callLogs = arrayListOf<CallLog>()
             if (cursor != null) {
@@ -89,6 +87,7 @@ class CallLogManager {
                     // save the date of latest call log for updating call logs
                     if (callLogs.size == 1) latestDate = date
                 }
+                cursor.close()
 
                 finished(callLogs)
             }
